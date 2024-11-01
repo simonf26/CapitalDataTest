@@ -212,6 +212,47 @@ func TestGetFiles(t *testing.T) {
 	t.Log("GetFiles successfully completed")
 }
 
+func TestConvertRecordToJSON(t *testing.T) {
+	// Test case: invalid record
+	record := []string{
+		"James",
+		"Howlett",
+		"3fing3rs@Jaxnation.org",
+	}
+	_, err := convertRecordToJSON(record)
+	if err == nil {
+		t.Fatalf("Error converting invalid record to JSON: %v", err)
+	}
+
+	// Test case: additional fields
+	record = []string{
+		"James",
+		"Howlett",
+		"3fing3rs@Jaxnation.org",
+		"1976-04-18T00:00:00Z",
+		"extra_field",
+	}
+	_, err = convertRecordToJSON(record)
+	if err != nil {
+		t.Fatalf("Error converting invalid record to JSON: %v", err)
+	}
+
+	// Test case: nominal
+	record = []string{
+		"James",
+		"Howlett",
+		"3fing3rs@Jaxnation.org",
+		"1976-04-18T00:00:00Z",
+	}
+
+	_, err = convertRecordToJSON(record)
+	if err != nil {
+		t.Fatalf("Error converting record to JSON: %v", err)
+	}
+
+	t.Log("ConvertRecordToJSON successfully completed")
+}
+
 // helper function to check that 2 slices are equal
 func sliceEqual(a, b [][]string) bool {
 	for i := 0; i < len(a); i++ {
