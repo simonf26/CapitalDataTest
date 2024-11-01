@@ -116,37 +116,25 @@ func TestAppendCSV(t *testing.T) {
 
 func TestConvertCSVToJSON(t *testing.T) {
 	// Test case: unexisting file
-	err := ConvertCSVToJSON(
-		"unexisting_file.csv",
-		basePath+"output.json",
-	)
+	err := ConvertCSVToJSON("unexisting_file.csv")
 	if err == nil {
 		t.Fatal("Converting unexisting file should return an error")
 	}
 
 	// Test case: unexisting folder
-	err = ConvertCSVToJSON(
-		"unexisting_folder",
-		basePath+"output.json",
-	)
+	err = ConvertCSVToJSON("unexisting_folder")
 	if err == nil {
 		t.Fatal("Converting on unexisting folder should return an error")
 	}
 
 	// Test case: nominal on CSV file
-	err = ConvertCSVToJSON(
-		basePath+"20180101_115200_contactstream.csv",
-		basePath+"output.json",
-	)
+	err = ConvertCSVToJSON(basePath + "20180101_115200_contactstream.csv")
 	if err != nil {
 		t.Fatalf("Error converting CSV to JSON: %v", err)
 	}
 
 	// Test case: nominal on folder
-	err = ConvertCSVToJSON(
-		basePath,
-		basePath+"output_folder",
-	)
+	err = ConvertCSVToJSON(basePath)
 	if err != nil {
 		t.Fatalf("Error converting folder to JSON: %v", err)
 	}
@@ -257,11 +245,13 @@ func TestFormatDate(t *testing.T) {
 	dates := []string{
 		"1976-04-18T00:00:00Z",
 		"19/09/2023",
+		"",
 	}
 
 	expectedDates := []string{
 		"1976-04-18 00:00:00",
 		"2023-09-19 00:00:00",
+		"",
 	}
 
 	for i, date := range dates {
