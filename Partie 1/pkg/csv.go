@@ -2,6 +2,7 @@ package csv
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,10 @@ type JSONRecord struct {
 	LastName        string `json:"lastname"`
 	Email           string `json:"email"`
 	InscriptionDate string `json:"inscription_date"`
+}
+
+type JSONContacts struct {
+	Contacts []JSONRecord `json:"contacts"`
 }
 
 var layouts = []string{
@@ -59,7 +64,7 @@ func AppendCSV(filename string, records [][]string) ([][]string, error) {
 	return records, nil
 }
 
-func ConvertCSVToJSON(CSVpath, JSONFilename string) error {
+func ConvertCSVToJSON(CSVpath string) error {
 	if CSVpath == "" {
 		err := errNoPathGiven
 		return err
@@ -73,22 +78,41 @@ func ConvertCSVToJSON(CSVpath, JSONFilename string) error {
 	var records [][]string
 
 	for _, file := range files {
-		records, err = AppendCSV(file, records)
+		records, err = ParseCSV(file)
 		if err != nil {
 			return err
 		}
-	}
 
-	var jsonRecords []JSONRecord
-	for _, record := range records {
-		jsonRecord, err := convertRecordToJSON(record)
+		var jsonRecords []JSONRecord
+		for _, record := range records {
+			jsonRecord, err := convertRecordToJSON(record)
+			if err != nil {
+				return fmt.Errorf("%v on record: %v", err, record)
+			}
+			jsonRecords = append(jsonRecords, jsonRecord)
+		}
+
+		jsonContacts := JSONContacts{
+			Contacts: jsonRecords,
+		}
+
+		jsonFilename := strings.TrimSuffix(filepath.Base(file), ".csv") + ".json"
+
+		jsonFile, err := os.Create(jsonFilename)
 		if err != nil {
 			return err
 		}
-		jsonRecords = append(jsonRecords, jsonRecord)
-	}
+		defer jsonFile.Close()
 
-	// write json records into a json file.
+		encoder := json.NewEncoder(jsonFile)
+		err = encoder.Encode(jsonContacts)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Converted %s to JSON\n", file)
+
+	}
 
 	return nil
 }
@@ -103,7 +127,8 @@ func convertRecordToJSON(record []string) (JSONRecord, error) {
 
 	formattedDate, err := formatDate(record[3])
 	if err != nil {
-		return jsonRecord, err
+		// if an error occurred, use an empty string
+		fmt.Println(fmt.Errorf("error while parsing date:%v", err))
 	}
 
 	jsonRecord = JSONRecord{
@@ -148,6 +173,10 @@ func GetFiles(path string) ([]string, error) {
 }
 
 func formatDate(date string) (string, error) {
+	if date == "" {
+		return "", nil
+	}
+
 	for _, layout := range layouts {
 		parsedTime, err := time.Parse(layout, date)
 		if err == nil {
@@ -155,5 +184,5 @@ func formatDate(date string) (string, error) {
 		}
 	}
 
-	return "", errUnsupportedDateLayout
+	return "", fmt.Errorf("%v: %v", errUnsupportedDateLayout, date)
 }
