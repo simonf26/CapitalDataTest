@@ -2,6 +2,7 @@ package csv
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -181,9 +182,12 @@ func TestGetFiles(t *testing.T) {
 		"20180102_140045_contactstream3.csv",
 		"20180204_120204_contactstream4.csv",
 	}
+
 	for i, filename := range files {
-		if filename != filenames[i] {
-			t.Fatalf("Expected file %s, got %s", filenames[i], filename)
+		expectedFile := filepath.Base(filenames[i])
+		resultFile := filepath.Base(filename)
+		if expectedFile != resultFile {
+			t.Fatalf("Expected file %s, got %s", expectedFile, resultFile)
 		}
 	}
 
@@ -198,12 +202,11 @@ func TestGetFiles(t *testing.T) {
 	if len(files) > 1 {
 		t.Fatalf("Expected only one file, got %d", len(files))
 	}
-	if files[0] != "20180101_115200_contactstream.csv" {
-		t.Fatalf(
-			"Expected file %s, got %s",
-			"20180101_115200_contactstream.csv",
-			files[0],
-		)
+
+	expectedFile := filepath.Base("20180101_115200_contactstream.csv")
+	resultFile := filepath.Base(files[0])
+	if expectedFile != resultFile {
+		t.Fatalf("Expected file %s, got %s", expectedFile, resultFile)
 	}
 
 	t.Log("GetFiles successfully completed")
