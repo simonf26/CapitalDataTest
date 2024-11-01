@@ -253,6 +253,28 @@ func TestConvertRecordToJSON(t *testing.T) {
 	t.Log("ConvertRecordToJSON successfully completed")
 }
 
+func TestFormatDate(t *testing.T) {
+	dates := []string{
+		"1976-04-18T00:00:00Z",
+		"19/09/2023",
+	}
+
+	expectedDates := []string{
+		"1976-04-18 00:00:00",
+		"2023-09-19 00:00:00",
+	}
+
+	for i, date := range dates {
+		formattedDate, err := formatDate(date)
+		if err != nil {
+			t.Fatalf("Error formatting date: %v", err)
+		}
+		if formattedDate != expectedDates[i] {
+			t.Fatalf("Expected date %s, got %s", expectedDates[i], formattedDate)
+		}
+	}
+}
+
 // helper function to check that 2 slices are equal
 func sliceEqual(a, b [][]string) bool {
 	for i := 0; i < len(a); i++ {
