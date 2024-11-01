@@ -153,6 +153,62 @@ func TestConvertCSVToJSON(t *testing.T) {
 	t.Log("ConvertCSVToJSON convertion was successful")
 }
 
+func TestGetFiles(t *testing.T) {
+	// Test case: Get files from unexisting file
+	_, err := GetFiles("unexisting_file.csv")
+	if !os.IsNotExist(err) {
+		t.Fatal("Getting files from unexisting file should return an error")
+	}
+
+	// Test case: Get files from non-existent folder
+	_, err = GetFiles("unexisting_folder")
+	if !os.IsNotExist(err) {
+		t.Fatal("Getting files from unexisting folder should return an error")
+	}
+
+	// Test case: nominal - Get files from basePath
+	files, err := GetFiles(basePath)
+	if err != nil {
+		t.Fatalf("Error getting files: %v", err)
+	}
+	if len(files) == 0 {
+		t.Fatal("Expected non-empty list of files")
+	}
+
+	filenames := [4]string{
+		"20180101_115200_contactstream.csv",
+		"20180101_132200_contactstream2.csv",
+		"20180102_140045_contactstream3.csv",
+		"20180204_120204_contactstream4.csv",
+	}
+	for i, filename := range files {
+		if filename != filenames[i] {
+			t.Fatalf("Expected file %s, got %s", filenames[i], filename)
+		}
+	}
+
+	// Test case: nominal - Get files from file
+	files, err = GetFiles(basePath + "20180101_115200_contactstream.csv")
+	if err != nil {
+		t.Fatalf("Error getting files: %v", err)
+	}
+	if len(files) == 0 {
+		t.Fatal("Expected non-empty list of files")
+	}
+	if len(files) > 1 {
+		t.Fatalf("Expected only one file, got %d", len(files))
+	}
+	if files[0] != "20180101_115200_contactstream.csv" {
+		t.Fatalf(
+			"Expected file %s, got %s",
+			"20180101_115200_contactstream.csv",
+			files[0],
+		)
+	}
+
+	t.Log("GetFiles successfully completed")
+}
+
 // helper function to check that 2 slices are equal
 func sliceEqual(a, b [][]string) bool {
 	for i := 0; i < len(a); i++ {
