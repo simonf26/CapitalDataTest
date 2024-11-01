@@ -24,3 +24,14 @@ func ParseCSV(filename string) ([][]string, error) {
 
 	return records[1:], nil
 }
+
+func AppendCSV(filename string, records [][]string) ([][]string, error) {
+	newRecords, err := ParseCSV(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	records = append(records, newRecords...)
+
+	return records, nil
+}
