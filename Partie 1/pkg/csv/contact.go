@@ -19,6 +19,7 @@ type JSONRecord struct {
 	InscriptionDate time.Time `json:"inscription_date"`
 }
 
+// add adds the contact into the dictionary
 func (dict JSONRecordDictionary) add(newContact *JSONRecord) {
 	if newContact == nil {
 		return
@@ -39,6 +40,7 @@ func (dict JSONRecordDictionary) add(newContact *JSONRecord) {
 	dict[newContact.Email] = newContact
 }
 
+// toContact translates the record dictionary into a JSON Contact object.
 func (dict JSONRecordDictionary) toContact() JSONContacts {
 	var records []*JSONRecord
 
@@ -53,12 +55,14 @@ func (dict JSONRecordDictionary) toContact() JSONContacts {
 	return contact
 }
 
+// sort sorts the contact from the most recent to the oldest.
 func (contact JSONContacts) sort() {
 	sort.Slice(contact.Contacts, func(i, j int) bool {
 		return contact.Contacts[i].InscriptionDate.After(contact.Contacts[j].InscriptionDate)
 	})
 }
 
+// isValid checks whether the JSONRecord is valid.
 func (rec *JSONRecord) isValid() bool {
 	if rec == nil {
 		return false

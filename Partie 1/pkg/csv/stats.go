@@ -12,6 +12,7 @@ type Stat struct {
 	JSONLines             int
 }
 
+// newStat creates a new Stat object.
 func newStat() *Stat {
 	return &Stat{
 		CSVLines:       0,
@@ -22,6 +23,7 @@ func newStat() *Stat {
 
 var stats *Stat
 
+// Print prints out the stat's information.
 func (stat *Stat) Print() {
 	fmt.Println("Stats:")
 	fmt.Printf("	CSV entries: %d\n", stat.CSVLines)

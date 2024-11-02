@@ -49,6 +49,7 @@ func AppendCSV(filename string, records [][]string) ([][]string, error) {
 	return records, nil
 }
 
+// ConvertCSVToJSON converts the given CSV file into a JSON file.
 func ConvertCSVToJSON(CSVpath string) error {
 	stats = newStat()
 
@@ -116,6 +117,7 @@ func ConvertCSVToJSON(CSVpath string) error {
 	return nil
 }
 
+// convertRecordToJSON converts the given record into a JSON record.
 func convertRecordToJSON(record []string) (*JSONRecord, error) {
 	var jsonRecord JSONRecord
 
@@ -175,6 +177,7 @@ func GetFiles(path string) ([]string, error) {
 	return csvFiles, nil
 }
 
+// parseDate parses a date using one of the provided layouts if possible.
 func parseDate(date string) (*time.Time, error) {
 	if date == "" {
 		return nil, nil

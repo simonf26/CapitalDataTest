@@ -94,7 +94,7 @@ func TestAppendCSV(t *testing.T) {
 		t.Fatal("Expected non-empty CSV records after appending")
 	}
 
-	// get new records separatly for comparison purposes
+	// get new records separately for comparison purposes
 	newRecords, err := ParseCSV(basePath + "20180101_132200_contactstream2.csv")
 	if err != nil {
 		t.Fatalf("Couldn't parse CSV file: %v", err)
