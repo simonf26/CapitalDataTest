@@ -136,7 +136,7 @@ func TestConvertCSVToJSON(t *testing.T) {
 	// Test case: nominal on folder
 	err = ConvertCSVToJSON(basePath)
 	if err != nil {
-		t.Fatalf("Error converting folder to JSON: %v", err)
+		t.Fatalf("Error converting %s folder to JSON: %v", basePath, err)
 	}
 
 	t.Log("ConvertCSVToJSON convertion was successful")
@@ -239,30 +239,6 @@ func TestConvertRecordToJSON(t *testing.T) {
 	}
 
 	t.Log("ConvertRecordToJSON successfully completed")
-}
-
-func TestFormatDate(t *testing.T) {
-	dates := []string{
-		"1976-04-18T00:00:00Z",
-		"19/09/2023",
-		"",
-	}
-
-	expectedDates := []string{
-		"1976-04-18 00:00:00",
-		"2023-09-19 00:00:00",
-		"",
-	}
-
-	for i, date := range dates {
-		formattedDate, err := formatDate(date)
-		if err != nil {
-			t.Fatalf("Error formatting date: %v", err)
-		}
-		if formattedDate != expectedDates[i] {
-			t.Fatalf("Expected date %s, got %s", expectedDates[i], formattedDate)
-		}
-	}
 }
 
 // helper function to check that 2 slices are equal

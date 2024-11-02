@@ -1,3 +1,3 @@
-module main.go
+module csv
 
 go 1.22.2

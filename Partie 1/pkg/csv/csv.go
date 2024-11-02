@@ -3,6 +3,7 @@ package csv
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,25 +11,9 @@ import (
 	"time"
 )
 
-type JSONRecord struct {
-	FirstName       string `json:"firstname"`
-	LastName        string `json:"lastname"`
-	Email           string `json:"email"`
-	InscriptionDate string `json:"inscription_date"`
-}
-
-type JSONContacts struct {
-	Contacts []JSONRecord `json:"contacts"`
-}
-
 var layouts = []string{
-	time.RFC3339,          // "2006-01-02T15:04:05Z07:00"
-	"2006-01-02",          // "YYYY-MM-DD"
-	"02/01/2006",          // "DD/MM/YYYY"
-	"01/02/2006",          // "MM/DD/YYYY"
-	"2006-01-02 15:04:05", // "YYYY-MM-DD HH:MM:SS"
-	"02/01/2006 15:04:05", // "DD/MM/YYYY HH:MM:SS"
-	"01/02/2006 15:04:05", // "MM/DD/YYYY HH:MM:SS"
+	time.RFC3339, // "2006-01-02T15:04:05Z07:00"
+	"02/01/2006", // "DD/MM/YYYY"
 }
 
 // ParseCSV parses the given CSV file into a slice of slices of strings.
@@ -65,6 +50,8 @@ func AppendCSV(filename string, records [][]string) ([][]string, error) {
 }
 
 func ConvertCSVToJSON(CSVpath string) error {
+	stats = newStat()
+
 	if CSVpath == "" {
 		err := errNoPathGiven
 		return err
@@ -83,18 +70,28 @@ func ConvertCSVToJSON(CSVpath string) error {
 			return err
 		}
 
-		var jsonRecords []JSONRecord
+		stats.CSVLines += len(records)
+
+		jsonRecords := make(JSONRecordDictionary)
 		for _, record := range records {
 			jsonRecord, err := convertRecordToJSON(record)
 			if err != nil {
-				return fmt.Errorf("%v on record: %v", err, record)
+				if errors.Is(err, errInvalidRecord) {
+					stats.InvalidRecords++
+				} else {
+					return fmt.Errorf("%v on record: %v", err, record)
+				}
 			}
-			jsonRecords = append(jsonRecords, jsonRecord)
+			if jsonRecord.isValid() {
+				stats.JSONLines += 1
+				jsonRecords.add(jsonRecord)
+			} else {
+				stats.InvalidRecords++
+			}
 		}
 
-		jsonContacts := JSONContacts{
-			Contacts: jsonRecords,
-		}
+		jsonContacts := jsonRecords.toContact()
+		jsonContacts.sort()
 
 		jsonFilename := strings.TrimSuffix(filepath.Base(file), ".csv") + ".json"
 
@@ -114,31 +111,37 @@ func ConvertCSVToJSON(CSVpath string) error {
 
 	}
 
+	stats.Print()
+
 	return nil
 }
 
-func convertRecordToJSON(record []string) (JSONRecord, error) {
+func convertRecordToJSON(record []string) (*JSONRecord, error) {
 	var jsonRecord JSONRecord
 
 	if len(record) < 4 {
 		err := fmt.Errorf("%v : %v", errInvalidRecord, record)
-		return jsonRecord, err
+		return nil, err
 	}
 
-	formattedDate, err := formatDate(record[3])
+	parsedTime, err := parseDate(record[3])
 	if err != nil {
 		// if an error occurred, use an empty string
 		fmt.Println(fmt.Errorf("error while parsing date:%v", err))
+		return nil, errInvalidRecord
+	}
+	if parsedTime == nil {
+		return nil, errInvalidRecord
 	}
 
 	jsonRecord = JSONRecord{
 		FirstName:       record[0],
 		LastName:        record[1],
 		Email:           record[2],
-		InscriptionDate: formattedDate,
+		InscriptionDate: *parsedTime,
 	}
 
-	return jsonRecord, nil
+	return &jsonRecord, nil
 }
 
 // GetFiles is a helper function that returns a list containing the files from
@@ -172,17 +175,20 @@ func GetFiles(path string) ([]string, error) {
 	return csvFiles, nil
 }
 
-func formatDate(date string) (string, error) {
+func parseDate(date string) (*time.Time, error) {
 	if date == "" {
-		return "", nil
+		return nil, nil
 	}
 
 	for _, layout := range layouts {
 		parsedTime, err := time.Parse(layout, date)
 		if err == nil {
-			return parsedTime.Format("2006-01-02 15:04:05"), nil
+			return &parsedTime, nil
 		}
 	}
+	if stats != nil {
+		stats.UnsupportedDateLayout++
+	}
 
-	return "", fmt.Errorf("%v: %v", errUnsupportedDateLayout, date)
+	return nil, fmt.Errorf("%v: %v", errUnsupportedDateLayout, date)
 }

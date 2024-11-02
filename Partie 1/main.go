@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"csv/pkg/csv"
+)
 
 func main() {
-	fmt.Println("Hello, World!")
+	csv.ConvertCSVToJSON("./")
 }
